@@ -418,57 +418,6 @@ ENDIF()
 # Compiler Configuration
 ################################
 
-##
-# Supress unused variable and parameter warnings, for the time being,
-# on GCC.
-#
-# Also, set some other default compiler flags.
-##
-
-IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unused-variable -Wno-unused-parameter")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-variable -Wno-unused-parameter")
-
-  OPTION(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-  OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-  OPTION(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
-
-  # Check to see if -Wl,--no-undefined is supported.
-  CHECK_CXX_LINKER_FLAG("-Wl,--no-undefined" LIBTOOL_HAS_NO_UNDEFINED)
-
-  IF(LIBTOOL_HAS_NO_UNDEFINED)
-    SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -Wl,--no-undefined")
-  ENDIF()
-  SET(CMAKE_REQUIRED_FLAGS "${TMP_CMAKE_REQUIRED_FLAGS}")
-
-  # Coverage tests need to have optimization turned off.
-  IF(ENABLE_COVERAGE_TESTS)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-    MESSAGE(STATUS "Coverage Tests: On.")
-  ENDIF()
-
-    # Warnings for 64-to-32 bit conversions.
-  IF(ENABLE_CONVERSION_WARNINGS)
-    CHECK_CXX_COMPILER_FLAG(-Wconversion CXX_HAS_WCONVERSION)
-    CHECK_CXX_COMPILER_FLAG(-Wshorten-64-to-32 CXX_HAS_SHORTEN_64_32)
-
-    IF(CXX_HAS_SHORTEN_64_32)
-      SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wshorten-64-to-32")
-    ENDIF()
-    IF(CXX_HAS_WCONVERSION)
-      SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wconversion")
-    ENDIF()
-
-  ENDIF(ENABLE_CONVERSION_WARNINGS)
-
-ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-
-# End default linux gcc & apple compiler options.
-
-
-ADD_DEFINITIONS()
-
 # Supress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
@@ -594,14 +543,6 @@ INSTALL(PROGRAMS ${NCXX_BINARY_DIR}/ncxx4-config
 #####
 
 #####
-# Build test_common.sh
-#####
-SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_SOURCE_DIR}/test_common.in)
-SET(TOPSRCDIR "${CMAKE_SOURCE_DIR}")
-SET(TOPBUILDDIR "${CMAKE_BINARY_DIR}")
-configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
-
-#####
 # Options
 #####
 
@@ -631,26 +572,9 @@ install(
 ##
 # Set up include directories.
 ##
-INCLUDE_DIRECTORIES(cxx4 examples)
+INCLUDE_DIRECTORIES(cxx4)
 
 ADD_SUBDIRECTORY(cxx4)
-ADD_SUBDIRECTORY(examples)
-
-IF(NC_HAS_DEF_VAR_FILTER)
-  #####
-  # Build cxx4/findplugin.sh
-  #####
-  SET(ISCMAKE "1")
-  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/cxx4/findplugin.in ${CMAKE_BINARY_DIR}/cxx4/findplugin.sh @ONLY NEWLINE_STYLE LF)
-  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/examples/findplugin.in ${CMAKE_BINARY_DIR}/examples/findplugin.sh @ONLY NEWLINE_STYLE LF)
-
-  ADD_SUBDIRECTORY(plugins)
-ENDIF(NC_HAS_DEF_VAR_FILTER)
-
-IF(ENABLE_DOXYGEN)
-  ADD_SUBDIRECTORY(docs)
-ENDIF()
-
 
 
 ##
